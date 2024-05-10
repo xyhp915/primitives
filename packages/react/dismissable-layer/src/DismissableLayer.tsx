@@ -26,6 +26,7 @@ const DismissableLayerContext = React.createContext({
 
 type DismissableLayerElement = React.ElementRef<typeof Primitive.div>;
 type PrimitiveDivProps = Radix.ComponentPropsWithoutRef<typeof Primitive.div>;
+
 interface DismissableLayerProps extends PrimitiveDivProps {
   /**
    * When `true`, hover/focus/click interactions will be disabled on elements outside
@@ -113,10 +114,13 @@ const DismissableLayer = React.forwardRef<DismissableLayerElement, DismissableLa
 
     React.useEffect(() => {
       if (!node) return;
+      let disableOutsidePointerEventsTimer: any = 0;
       if (disableOutsidePointerEvents) {
         if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
-          originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
-          ownerDocument.body.style.pointerEvents = 'none';
+          disableOutsidePointerEventsTimer = setTimeout(() => {
+            originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
+            ownerDocument.body.style.pointerEvents = 'none';
+          }, 128);
         }
         context.layersWithOutsidePointerEventsDisabled.add(node);
       }
@@ -127,7 +131,10 @@ const DismissableLayer = React.forwardRef<DismissableLayerElement, DismissableLa
           disableOutsidePointerEvents &&
           context.layersWithOutsidePointerEventsDisabled.size === 1
         ) {
-          ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
+          disableOutsidePointerEventsTimer && clearTimeout(disableOutsidePointerEventsTimer);
+          setTimeout(() => {
+            ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
+          }, 64);
         }
       };
     }, [node, ownerDocument, disableOutsidePointerEvents, context]);
@@ -185,6 +192,7 @@ DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
 const BRANCH_NAME = 'DismissableLayerBranch';
 
 type DismissableLayerBranchElement = React.ElementRef<typeof Primitive.div>;
+
 interface DismissableLayerBranchProps extends PrimitiveDivProps {}
 
 const DismissableLayerBranch = React.forwardRef<
@@ -335,11 +343,17 @@ function dispatchUpdate() {
 function handleAndDispatchCustomEvent<E extends CustomEvent, OriginalEvent extends Event>(
   name: string,
   handler: ((event: E) => void) | undefined,
-  detail: { originalEvent: OriginalEvent } & (E extends CustomEvent<infer D> ? D : never),
+  detail: {
+    originalEvent: OriginalEvent
+  } & (E extends CustomEvent<infer D> ? D : never),
   { discrete }: { discrete: boolean }
 ) {
   const target = detail.originalEvent.target;
-  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
+  const event = new CustomEvent(name, {
+    bubbles: false,
+    cancelable: true,
+    detail
+  });
   if (handler) target.addEventListener(name, handler as EventListener, { once: true });
 
   if (discrete) {

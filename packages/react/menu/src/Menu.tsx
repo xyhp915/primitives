@@ -219,7 +219,7 @@ type MenuContentElement = MenuRootContentTypeElement;
  * they have conflicting prop types. We agreed that we would allow MenuSubContent to
  * accept props that it would just ignore.
  */
-interface MenuContentProps extends MenuRootContentTypeProps {
+interface MenuContentProps extends MenuContentImplProps {
   /**
    * Used to force mounting when more control is needed. Useful when
    * controlling animation with React animation libraries.
@@ -254,7 +254,7 @@ const MenuContent = React.forwardRef<MenuContentElement, MenuContentProps>(
 
 type MenuRootContentTypeElement = MenuContentImplElement;
 interface MenuRootContentTypeProps
-  extends Omit<MenuContentImplProps, keyof MenuContentImplPrivateProps> {}
+  extends MenuContentProps {}
 
 const MenuRootContentModal = React.forwardRef<MenuRootContentTypeElement, MenuRootContentTypeProps>(
   (props: ScopedProps<MenuRootContentTypeProps>, forwardedRef) => {
@@ -274,11 +274,11 @@ const MenuRootContentModal = React.forwardRef<MenuRootContentTypeElement, MenuRo
         ref={composedRefs}
         // we make sure we're not trapping once it's been closed
         // (closed !== unmounted when animating out)
-        trapFocus={context.open}
+        trapFocus={false}
         // make sure to only disable pointer events when open
         // this avoids blocking interactions while animating out
-        disableOutsidePointerEvents={context.open}
-        disableOutsideScroll
+        disableOutsidePointerEvents={props.disableOutsidePointerEvents == undefined ? context.open : props.disableOutsidePointerEvents}
+        disableOutsideScroll={props.disableOutsideScroll == undefined ? true : props.disableOutsideScroll}
         // When focus is trapped, a `focusout` event may still happen.
         // We make sure we don't trigger our `onDismiss` in such case.
         onFocusOutside={composeEventHandlers(
