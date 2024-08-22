@@ -253,8 +253,7 @@ const MenuContent = React.forwardRef<MenuContentElement, MenuContentProps>(
 /* ---------------------------------------------------------------------------------------------- */
 
 type MenuRootContentTypeElement = MenuContentImplElement;
-interface MenuRootContentTypeProps
-  extends MenuContentProps {}
+interface MenuRootContentTypeProps extends MenuContentProps {}
 
 const MenuRootContentModal = React.forwardRef<MenuRootContentTypeElement, MenuRootContentTypeProps>(
   (props: ScopedProps<MenuRootContentTypeProps>, forwardedRef) => {
@@ -277,8 +276,14 @@ const MenuRootContentModal = React.forwardRef<MenuRootContentTypeElement, MenuRo
         trapFocus={false}
         // make sure to only disable pointer events when open
         // this avoids blocking interactions while animating out
-        disableOutsidePointerEvents={props.disableOutsidePointerEvents == undefined ? context.open : props.disableOutsidePointerEvents}
-        disableOutsideScroll={props.disableOutsideScroll == undefined ? true : props.disableOutsideScroll}
+        disableOutsidePointerEvents={
+          props.disableOutsidePointerEvents == undefined
+            ? context.open
+            : props.disableOutsidePointerEvents
+        }
+        disableOutsideScroll={
+          props.disableOutsideScroll == undefined ? true : props.disableOutsideScroll
+        }
         // When focus is trapped, a `focusout` event may still happen.
         // We make sure we don't trigger our `onDismiss` in such case.
         onFocusOutside={composeEventHandlers(
@@ -1204,7 +1209,11 @@ const MenuSubContent = React.forwardRef<MenuSubContentElement, MenuSubContentPro
                 // Submenu key events bubble through portals. We only care about keys in this menu.
                 const isKeyDownInside = event.currentTarget.contains(event.target as HTMLElement);
                 const isCloseKey = SUB_CLOSE_KEYS[rootContext.dir].includes(event.key);
-                if (isKeyDownInside && isCloseKey) {
+                // Skip editing mode
+                const isInputElement = ['input', 'textarea'].includes(
+                  document.activeElement?.nodeName?.toLowerCase() as string
+                );
+                if (isKeyDownInside && isCloseKey && !isInputElement) {
                   context.onOpenChange(false);
                   // We focus manually because we prevented it in `onCloseAutoFocus`
                   subContext.trigger?.focus();
