@@ -204,13 +204,13 @@ interface DialogOverlayImplProps extends PrimitiveDivProps {
 
 const DialogOverlayImpl = React.forwardRef<DialogOverlayImplElement, DialogOverlayImplProps>(
   (props: ScopedProps<DialogOverlayImplProps>, forwardedRef) => {
-    const { __scopeDialog, ...overlayProps } = props;
+    let { __scopeDialog, disableOutsideScroll, ...overlayProps } = props;
     const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
-    const disableOutsideScroll = overlayProps.disableOutsideScroll == undefined ? true : overlayProps.disableOutsideScroll;
+    disableOutsideScroll = disableOutsideScroll == undefined ? true : disableOutsideScroll;
     const ScrollLockWrapper = disableOutsideScroll ? RemoveScroll : React.Fragment;
     const scrollLockWrapperProps = disableOutsideScroll
-      ? { as: Slot, allowPinchZoom: true, shards: [context.contentRef] } :
-      {};
+      ? { as: Slot, allowPinchZoom: true, shards: [context.contentRef] }
+      : {};
 
     return (
       // Make sure `Content` is scrollable even when it doesn't live inside `RemoveScroll`
@@ -398,13 +398,7 @@ interface DialogContentImplProps extends Omit<DismissableLayerProps, 'onDismiss'
 
 const DialogContentImpl = React.forwardRef<DialogContentImplElement, DialogContentImplProps>(
   (props: ScopedProps<DialogContentImplProps>, forwardedRef) => {
-    const {
-      __scopeDialog,
-      trapFocus,
-      onOpenAutoFocus,
-      onCloseAutoFocus,
-      ...contentProps
-    } = props;
+    const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props;
     const context = useDialogContext(CONTENT_NAME, __scopeDialog);
     const contentRef = React.useRef<HTMLDivElement>(null);
     const composedRefs = useComposedRefs(forwardedRef, contentRef);
@@ -436,8 +430,7 @@ const DialogContentImpl = React.forwardRef<DialogContentImplElement, DialogConte
         {process.env.NODE_ENV !== 'production' && (
           <>
             <TitleWarning titleId={context.titleId} />
-            <DescriptionWarning contentRef={contentRef}
-                                descriptionId={context.descriptionId} />
+            <DescriptionWarning contentRef={contentRef} descriptionId={context.descriptionId} />
           </>
         )}
       </>
@@ -460,8 +453,7 @@ const DialogTitle = React.forwardRef<DialogTitleElement, DialogTitleProps>(
   (props: ScopedProps<DialogTitleProps>, forwardedRef) => {
     const { __scopeDialog, ...titleProps } = props;
     const context = useDialogContext(TITLE_NAME, __scopeDialog);
-    return <Primitive.h2 id={context.titleId} {...titleProps}
-                         ref={forwardedRef} />;
+    return <Primitive.h2 id={context.titleId} {...titleProps} ref={forwardedRef} />;
   }
 );
 
@@ -482,8 +474,7 @@ const DialogDescription = React.forwardRef<DialogDescriptionElement, DialogDescr
   (props: ScopedProps<DialogDescriptionProps>, forwardedRef) => {
     const { __scopeDialog, ...descriptionProps } = props;
     const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
-    return <Primitive.p id={context.descriptionId} {...descriptionProps}
-                        ref={forwardedRef} />;
+    return <Primitive.p id={context.descriptionId} {...descriptionProps} ref={forwardedRef} />;
   }
 );
 
@@ -558,10 +549,7 @@ type DescriptionWarningProps = {
   descriptionId?: string;
 };
 
-const DescriptionWarning: React.FC<DescriptionWarningProps> = ({
-  contentRef,
-  descriptionId
-}) => {
+const DescriptionWarning: React.FC<DescriptionWarningProps> = ({ contentRef, descriptionId }) => {
   const descriptionWarningContext = useWarningContext(DESCRIPTION_WARNING_NAME);
   const MESSAGE = `Warning: Missing \`Description\` or \`aria-describedby={undefined}\` for {${descriptionWarningContext.contentName}}.`;
 
